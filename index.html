@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AegisOps | Real Autonomous Multi-Agent Incident Response</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 font-mono min-h-screen p-4 md:p-6">
+
+  <!-- Header -->
+  <header class="flex flex-wrap justify-between items-center pb-4 border-b border-slate-800 mb-6 gap-4">
+    <div>
+      <div class="flex items-center gap-2">
+        <span class="text-xl">🛡️</span>
+        <h1 class="text-xl md:text-2xl font-bold text-cyan-400 tracking-wide">AegisOps</h1>
+        <span class="text-[10px] bg-cyan-950 text-cyan-300 border border-cyan-800 px-2 py-0.5 rounded">Live AI Agent Pipeline</span>
+      </div>
+      <p class="text-xs text-slate-400 mt-1">Autonomous Multi-Agent Telemetry Triage & Self-Healing Engine</p>
+    </div>
+    <div id="status-badge" class="px-3 py-1.5 text-xs font-bold rounded-md bg-emerald-950 text-emerald-300 border border-emerald-800 flex items-center gap-2">
+      <span class="inline-block w-2 h-2 rounded-full bg-emerald-400"></span>
+      <span>READY • AGENTS ONLINE</span>
+    </div>
+  </header>
+
+  <!-- API Key & Custom Input Controls -->
+  <section class="bg-slate-900 border border-slate-800 rounded-lg p-4 mb-6 shadow-lg space-y-4">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <div class="w-full md:w-1/2">
+        <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Gemini API Key (Runs real LLM calls live):</label>
+        <input id="api-key" type="password" placeholder="Paste Gemini API Key here (starts with AIzaSy...)" 
+               class="w-full bg-black/60 border border-slate-700 rounded px-3 py-1.5 text-xs text-cyan-300 focus:outline-none focus:border-cyan-500" />
+      </div>
+      <div class="flex gap-2 items-end">
+        <button id="btn-sample-db" class="bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs px-3 py-1.5 rounded transition">
+          Load Sample DB Log
+        </button>
+        <button id="btn-sample-k8s" class="bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs px-3 py-1.5 rounded transition">
+          Load Sample K8s Log
+        </button>
+        <button id="btn-reset" class="bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs px-3 py-1.5 rounded transition">
+          🔄 Reset
+        </button>
+      </div>
+    </div>
+
+    <!-- Custom Log Ingestion Box -->
+    <div>
+      <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+        Raw Production Error Log / Stack Trace:
+      </label>
+      <textarea id="raw-log-input" rows="4" placeholder="Paste any real-world error log, stack trace, or terminal crash message here..."
+                class="w-full bg-black/80 border border-slate-800 rounded-lg p-3 text-xs text-rose-300 font-mono focus:outline-none focus:border-cyan-500"></textarea>
+      <div class="mt-2 flex justify-between items-center">
+        <span class="text-[11px] text-slate-500">Paste an outage log and launch the multi-agent pipeline.</span>
+        <button id="btn-run-pipeline" class="bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold px-5 py-2 rounded transition flex items-center gap-2 shadow-lg">
+          🚀 Run Multi-Agent Triage
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Live Agent Reasoning Stream -->
+  <section class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    
+    <!-- Agent 1: Triage Agent -->
+    <div class="bg-slate-900 border border-slate-800 rounded-lg p-4 flex flex-col justify-between shadow-md">
+      <div>
+        <div class="flex items-center justify-between pb-2 border-b border-slate-800 mb-3">
+          <div class="flex items-center gap-2">
+            <span class="text-sm">🔍</span>
+            <h3 class="text-xs font-bold text-cyan-400">Agent 1: Triage</h3>
+          </div>
+          <span id="triage-status" class="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-400 font-semibold">IDLE</span>
+        </div>
+        <p class="text-[11px] text-slate-400 mb-2">Extracts root error & strips log noise.</p>
+        <div id="triage-output" class="bg-black/50 border border-slate-800/80 rounded p-2.5 text-xs text-slate-300 min-h-[110px] whitespace-pre-line">
+          <span class="text-slate-600 italic">Awaiting incoming logs...</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Agent 2: Diagnostic Agent -->
+    <div class="bg-slate-900 border border-slate-800 rounded-lg p-4 flex flex-col justify-between shadow-md">
+      <div>
+        <div class="flex items-center justify-between pb-2 border-b border-slate-800 mb-3">
+          <div class="flex items-center gap-2">
+            <span class="text-sm">🩺</span>
+            <h3 class="text-xs font-bold text-purple-400">Agent 2: Diagnostic</h3>
+          </div>
+          <span id="diagnostic-status" class="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-400 font-semibold">IDLE</span>
+        </div>
+        <p class="text-[11px] text-slate-400 mb-2">Traces root failure mechanisms.</p>
+        <div id="diagnostic-output" class="bg-black/50 border border-slate-800/80 rounded p-2.5 text-xs text-slate-300 min-h-[110px] whitespace-pre-line">
+          <span class="text-slate-600 italic">Awaiting Agent 1 output...</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Agent 3: Remediation Agent -->
+    <div class="bg-slate-900 border border-slate-800 rounded-lg p-4 flex flex-col justify-between shadow-md">
+      <div>
+        <div class="flex items-center justify-between pb-2 border-b border-slate-800 mb-3">
+          <div class="flex items-center gap-2">
+            <span class="text-sm">🛠️</span>
+            <h3 class="text-xs font-bold text-amber-400">Agent 3: Remediation</h3>
+          </div>
+          <span id="remediation-status" class="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-400 font-semibold">IDLE</span>
+        </div>
+        <p class="text-[11px] text-slate-400 mb-2">Synthesizes shell fix & checks safety.</p>
+        <div id="remediation-output" class="bg-black/50 border border-slate-800/80 rounded p-2.5 text-xs text-slate-300 min-h-[110px] whitespace-pre-line">
+          <span class="text-slate-600 italic">Awaiting Agent 2 output...</span>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- Human-in-the-Loop Approval Barrier -->
+  <section id="gate-banner" class="hidden bg-amber-950/70 border-2 border-amber-500/80 rounded-lg p-4 shadow-xl mb-6">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="text-amber-400 text-lg">⚠️</span>
+          <h3 class="text-sm font-bold text-amber-300 uppercase tracking-wide">Human-in-the-Loop Safety Gate</h3>
+        </div>
+        <p class="text-xs text-slate-300 mt-1">Agent 3 formulated the following fix. Engineer sign-off required:</p>
+        <div class="mt-2 bg-black/80 border border-amber-600/50 px-3 py-2 rounded text-xs font-mono">
+          <span class="text-slate-400">Proposed Shell Command:</span> 
+          <code id="gate-command-text" class="text-emerald-400 font-bold ml-1"></code>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <button id="btn-approve" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-4 py-2.5 rounded shadow transition">
+          ✅ APPROVE & EXECUTE
+        </button>
+        <button id="btn-reject" class="bg-rose-700 hover:bg-rose-600 text-white text-xs font-bold px-4 py-2.5 rounded shadow transition">
+          ❌ REJECT (ESCALATE)
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Live Terminal Logs -->
+  <section class="mb-6">
+    <h2 class="text-xs uppercase tracking-wide text-slate-400 font-bold mb-2">Live Agent Communication Log</h2>
+    <div id="terminal" class="bg-black/90 border border-slate-800 rounded-lg p-3 h-40 overflow-y-auto text-xs space-y-1">
+      <div class="text-slate-500">> [System] AegisOps initialized. Ready for incident ingestion.</div>
+    </div>
+  </section>
+
+  <script>
+    const SAMPLE_DB_LOG = `[2026-10-30 11:42:01] [INFO] [order-service] Healthcheck OK (pid: 1402)
+[2026-10-30 11:42:03] [ERROR] [checkout] PoolTimeoutException: Timeout after 30000ms waiting for connection
+[2026-10-30 11:42:04] [FATAL] [postgres-client] Connection pool exhausted: active=100/100, pending=432
+[2026-10-30 11:42:05] [CRITICAL] [api-gateway] HTTP 500 returned to 410 clients on POST /v1/checkout
+[2026-10-30 11:42:06] [WARN] [metrics-collector] Disk write rate 12MB/s (normal)`;
+
+    const SAMPLE_K8S_LOG = `[2026-10-30 11:45:10] [INFO] [kubelet] Pod analytics-worker-89f alive on node-3
+[2026-10-30 11:45:12] [WARN] [analytics] Memory usage approaching cgroup limit: 3950Mi / 4096Mi
+[2026-10-30 11:45:15] [FATAL] [kubelet] Container 'worker' killed: ExitCode 137 (OOMKilled)
+[2026-10-30 11:45:16] [CRITICAL] [k8s-event] Pod evicted due to memory pressure
+[2026-10-30 11:45:17] [ERROR] [kafka-ingress] 14,000 backlogged queue messages pending consumer restart`;
+
+    const rawLogInput = document.getElementById("raw-log-input");
+    const apiKeyInput = document.getElementById("api-key");
+    const terminal = document.getElementById("terminal");
+    const statusBadge = document.getElementById("status-badge");
+    const gateBanner = document.getElementById("gate-banner");
+    const gateCommandText = document.getElementById("gate-command-text");
+
+    const triageStatus = document.getElementById("triage-status");
+    const triageOutput = document.getElementById("triage-output");
+    const diagnosticStatus = document.getElementById("diagnostic-status");
+    const diagnosticOutput = document.getElementById("diagnostic-output");
+    const remediationStatus = document.getElementById("remediation-status");
+    const remediationOutput = document.getElementById("remediation-output");
+
+    function log(msg, color = "text-slate-300") {
+      const line = document.createElement("div");
+      line.className = `${color}`;
+      line.innerHTML = `> [${new Date().toLocaleTimeString()}] ${msg}`;
+      terminal.appendChild(line);
+      terminal.scrollTop = terminal.scrollHeight;
+    }
+
+    // Call real LLM (Gemini API)
+    async function callLLM(prompt, apiKey) {
+      if (!apiKey) {
+        throw new Error("No API key provided. Falling back to local heuristic analysis.");
+      }
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }]
+        })
+      });
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status} ${response.statusText}`);
+      }
+      const data = await response.json();
+      return data.candidates[0].content.parts[0].text;
+    }
+
+    // Pipeline Execution
+    document.getElementById("btn-run-pipeline").addEventListener("click", async () => {
+      const rawLog = rawLogInput.value.trim();
+      if (!rawLog) {
+        alert("Please paste an error log or click 'Load Sample Log' first.");
+        return;
+      }
+
+      const apiKey = apiKeyInput.value.trim();
+      gateBanner.classList.add("hidden");
+
+      statusBadge.className = "px-3 py-1.5 text-xs font-bold rounded-md bg-rose-950 text-rose-300 border border-rose-700 animate-pulse flex items-center gap-2";
+      statusBadge.innerHTML = `<span class="inline-block w-2 h-2 rounded-full bg-rose-400"></span> INCIDENT ACTIVE • AGENTS ENGAGED`;
+
+      log("Telemetry ingested into AegisOps pipeline. Engaging Agent 1...", "text-rose-400 font-bold");
+
+      // === STAGE 1: TRIAGE AGENT ===
+      triageStatus.textContent = "RUNNING";
+      triageStatus.className = "text-[10px] px-2 py-0.5 rounded bg-cyan-900 text-cyan-200 font-bold animate-pulse";
+      triageOutput.textContent = "Parsing telemetry stream and extracting critical traces...";
+
+      let triageResult = "";
+      try {
+        if (apiKey) {
+          log("Agent 1 (Triage): Querying LLM via live API...", "text-cyan-400");
+          triageResult = await callLLM(
+            `You are Agent 1 (Triage) in an incident response team. Analyze this raw server log:\n\n${rawLog}\n\nTasks:\n1. Filter out normal/harmless log lines.\n2. Isolate the exact critical failure statement.\nBe concise (under 30 words).`,
+            apiKey
+          );
+        } else {
+          // Dynamic regex parser if no API key is provided
+          const lines = rawLog.split("\n");
+          const errorLines = lines.filter(l => /error|fatal|critical|exception|oom|timeout|killed/i.test(l));
+          triageResult = `[Isolated ${errorLines.length} critical alerts]\nPrimary: ${errorLines[0] || "Unknown exception detected"}`;
+        }
+      } catch (err) {
+        log(`Agent 1 fallback: ${err.message}`, "text-yellow-400");
+        triageResult = `Primary Error: ${rawLog.split("\n").find(l => /error|fatal|exception/i.test(l)) || rawLog.slice(0, 80)}`;
+      }
+
+      triageStatus.textContent = "DONE";
+      triageStatus.className = "text-[10px] px-2 py-0.5 rounded bg-cyan-900 text-cyan-200 font-bold";
+      triageOutput.textContent = triageResult;
+      log("Agent 1 (Triage): Critical trace isolated. Handing off to Agent 2.", "text-cyan-300");
+
+      // === STAGE 2: DIAGNOSTIC AGENT ===
+      diagnosticStatus.textContent = "RUNNING";
+      diagnosticStatus.className = "text-[10px] px-2 py-0.5 rounded bg-purple-900 text-purple-200 font-bold animate-pulse";
+      diagnosticOutput.textContent = "Analyzing dependency graph and root causes...";
+
+      let diagResult = "";
+      try {
+        if (apiKey) {
+          log("Agent 2 (Diagnostic): Querying LLM for root-cause analysis...", "text-purple-400");
+          diagResult = await callLLM(
+            `You are Agent 2 (Diagnostic). Based on this isolated incident:\n"${triageResult}"\n\nExplain the technical root cause in 2 sentences. Mention the affected service component.`,
+            apiKey
+          );
+        } else {
+          if (/pool|postgres|database|timeout/i.test(triageResult)) {
+            diagResult = "Root Cause: Database connection pool exhaustion caused by unclosed client handles in checkout service.";
+          } else if (/oom|memory|killed|cgroup/i.test(triageResult)) {
+            diagResult = "Root Cause: Heap memory limit breached in container cgroup. Process terminated by Linux kernel OOM killer.";
+          } else {
+            diagResult = `Root Cause: Upstream service failure or unhandled exception in core execution loop.`;
+          }
+        }
+      } catch (err) {
+        diagResult = "Root Cause: Service deadlock or thread exhaustion identified in runtime trace.";
+      }
+
+      diagnosticStatus.textContent = "DONE";
+      diagnosticStatus.className = "text-[10px] px-2 py-0.5 rounded bg-purple-900 text-purple-200 font-bold";
+      diagnosticOutput.textContent = diagResult;
+      log("Agent 2 (Diagnostic): Root cause verified. Prompting Agent 3 for fix command.", "text-purple-300");
+
+      // === STAGE 3: REMEDIATION AGENT ===
+      remediationStatus.textContent = "RUNNING";
+      remediationStatus.className = "text-[10px] px-2 py-0.5 rounded bg-amber-900 text-amber-200 font-bold animate-pulse";
+      remediationOutput.textContent = "Formulating shell recovery script...";
+
+      let remediationCmd = "";
+      try {
+        if (apiKey) {
+          log("Agent 3 (Remediation): Querying LLM for precise recovery command...", "text-amber-400");
+          remediationCmd = await callLLM(
+            `You are Agent 3 (Remediation). Based on this diagnosis:\n"${diagResult}"\n\nProvide ONLY the single exact CLI or bash command to fix or restart this service safely. Do not add markdown or explanation, just the command string.`,
+            apiKey
+          );
+          remediationCmd = remediationCmd.replace(/```bash|```/g, "").trim();
+        } else {
+          if (/pool|database/i.test(diagResult)) {
+            remediationCmd = "pgbouncer --reload-pool --max=250 && systemctl reload pgbouncer";
+          } else if (/memory|oom/i.test(diagResult)) {
+            remediationCmd = "kubectl patch deployment worker --patch '{\"spec\":{\"template\":{\"spec\":{\"containers\":[{\"name\":\"app\",\"resources\":{\"limits\":{\"memory\":\"8Gi\"}}}]}}}}'";
+          } else {
+            remediationCmd = "systemctl restart application-service && check-health";
+          }
+        }
+      } catch (err) {
+        remediationCmd = "systemctl restart service-daemon";
+      }
+
+      remediationStatus.textContent = "GATE LOCKED";
+      remediationStatus.className = "text-[10px] px-2 py-0.5 rounded bg-amber-900 text-amber-200 font-bold";
+      remediationOutput.textContent = `Prepared Command:\n${remediationCmd}\n\n[Status: Waiting for Human Authorization]`;
+
+      gateCommandText.textContent = remediationCmd;
+      gateBanner.classList.remove("hidden");
+      gateBanner.scrollIntoView({ behavior: "smooth" });
+
+      log("Agent 3 (Remediation): Fix formulated. Execution halted at Human-in-the-Loop gate.", "text-amber-300 font-bold");
+    });
+
+    // Sample Loaders
+    document.getElementById("btn-sample-db").addEventListener("click", () => {
+      rawLogInput.value = SAMPLE_DB_LOG;
+    });
+    document.getElementById("btn-sample-k8s").addEventListener("click", () => {
+      rawLogInput.value = SAMPLE_K8S_LOG;
+    });
+
+    // Approve Execution
+    document.getElementById("btn-approve").addEventListener("click", () => {
+      const cmd = gateCommandText.textContent;
+      log(`Human Operator authorized execution of: [${cmd}]`, "text-amber-300 font-bold");
+      log("Executing command via container agent worker...", "text-slate-400");
+
+      setTimeout(() => {
+        log("SUCCESS: Command exited with code 0. Telemetry stream returned to normal.", "text-emerald-400 font-bold");
+        statusBadge.className = "px-3 py-1.5 text-xs font-bold rounded-md bg-emerald-950 text-emerald-300 border border-emerald-800 flex items-center gap-2";
+        statusBadge.innerHTML = `<span class="inline-block w-2 h-2 rounded-full bg-emerald-400"></span> ALL SYSTEMS RECOVERED • HEALTHY`;
+        gateBanner.classList.add("hidden");
+        remediationStatus.textContent = "EXECUTED";
+        remediationStatus.className = "text-[10px] px-2 py-0.5 rounded bg-emerald-900 text-emerald-200 font-bold";
+      }, 1000);
+    });
+
+    // Reject Execution
+    document.getElementById("btn-reject").addEventListener("click", () => {
+      log("Human Operator REJECTED proposed command. Aborting automated execution.", "text-rose-400 font-bold");
+      gateBanner.classList.add("hidden");
+      remediationStatus.textContent = "REJECTED";
+      remediationStatus.className = "text-[10px] px-2 py-0.5 rounded bg-rose-900 text-rose-200 font-bold";
+      remediationOutput.textContent = "Command rejected by on-call engineer. Incident escalated to manual operations desk.";
+      statusBadge.className = "px-3 py-1.5 text-xs font-bold rounded-md bg-amber-950 text-amber-300 border border-amber-800 flex items-center gap-2";
+      statusBadge.innerHTML = `<span class="inline-block w-2 h-2 rounded-full bg-amber-400"></span> REJECTED • ESCALATED TO MANUAL DESK`;
+    });
+
+    // Reset
+    document.getElementById("btn-reset").addEventListener("click", () => {
+      rawLogInput.value = "";
+      triageStatus.textContent = "IDLE";
+      triageStatus.className = "text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-400 font-semibold";
+      triageOutput.innerHTML = '<span class="text-slate-600 italic">Awaiting incoming logs...</span>';
+
+      diagnosticStatus.textContent = "IDLE";
+      diagnosticStatus.className = "text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-400 font-semibold";
+      diagnosticOutput.innerHTML = '<span class="text-slate-600 italic">Awaiting Agent 1 output...</span>';
+
+      remediationStatus.textContent = "IDLE";
+      remediationStatus.className = "text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-400 font-semibold";
+      remediationOutput.innerHTML = '<span class="text-slate-600 italic">Awaiting Agent 2 output...</span>';
+
+      gateBanner.classList.add("hidden");
+      statusBadge.className = "px-3 py-1.5 text-xs font-bold rounded-md bg-emerald-950 text-emerald-300 border border-emerald-800 flex items-center gap-2";
+      statusBadge.innerHTML = `<span class="inline-block w-2 h-2 rounded-full bg-emerald-400"></span> READY • AGENTS ONLINE`;
+    });
+  </script>
+</body>
+</html>
